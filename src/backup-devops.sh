@@ -1,5 +1,5 @@
 #!/bin/bash
-VERBOSE_MODE=false;
+VERBOSE_MODE=true;
 DRY_RUN=false;
 PROJECT_WIKI=false;
 
