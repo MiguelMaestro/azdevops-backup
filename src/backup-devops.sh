@@ -64,6 +64,11 @@ echo "DRY_RUN           = ${DRY_RUN}"
 echo "PROJECT_WIKI      = ${PROJECT_WIKI}"
 echo "VERBOSE_MODE      = ${VERBOSE_MODE}"
 
+# Extract organization name from URL
+ORGANIZATION_NAME=$(echo ${ORGANIZATION} | sed -E 's|https://dev\.azure\.com/([^/]+)/?.*|\1|')
+
+echo "ORGANIZATION_NAME = ${ORGANIZATION_NAME}"
+
 #Store script start time
 start_time=$(date +%s)
 
@@ -75,14 +80,14 @@ az extension add --name 'azure-devops'
 echo "=== Set AZURE_DEVOPS_EXT_PAT env variable"
 export AZURE_DEVOPS_EXT_PAT=${PAT} 
 #Store PAT in Base64
-B64_PAT=$(printf "%s"":${PAT}" | base64)
+B64_PAT=$(printf "%s":"${PAT}" | base64)
 
 echo "=== Get project list"
 ProjectList=$(az devops project list --organization ${ORGANIZATION} --query 'value[]')
 
-#Create backup folder with current time as name
+#Create backup folder with organization name and current time as name
 BACKUP_FOLDER=$(date +"%Y%m%d%H%M")
-BACKUP_DIRECTORY="${BACKUP_ROOT_PATH}/${BACKUP_FOLDER}"
+BACKUP_DIRECTORY="${BACKUP_ROOT_PATH}/${ORGANIZATION_NAME}_${BACKUP_FOLDER}"
 mkdir -p "${BACKUP_DIRECTORY}"
 echo "=== Backup folder created [${BACKUP_DIRECTORY}]"
 
@@ -175,10 +180,10 @@ backup_size_uncompressed=$(du -hs ${BACKUP_DIRECTORY})
 
 cd ${BACKUP_ROOT_PATH}
 echo "=== Compress folder"
-tar czf ${BACKUP_FOLDER}.tar.gz ${BACKUP_FOLDER}
-backup_size_compressed=$(du -hs ${BACKUP_FOLDER}.tar.gz)
+tar czf ${ORGANIZATION_NAME}_${BACKUP_FOLDER}.tar.gz ${BACKUP_DIRECTORY}
+backup_size_compressed=$(du -hs ${ORGANIZATION_NAME}_${BACKUP_FOLDER}.tar.gz)
 echo "=== Remove raw data in folder"
-rm -rf ${BACKUP_FOLDER}
+rm -rf ${BACKUP_DIRECTORY}
 
 echo "=== Backup completed ==="
 echo  "Projects : ${PROJECT_COUNTER}"
